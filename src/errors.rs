@@ -5,6 +5,7 @@
 //! during encoding, decoding, and validation processes.
 
 use std::fmt;
+
 #[cfg(feature = "instrument")]
 use tracing::error;
 
