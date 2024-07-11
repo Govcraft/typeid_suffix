@@ -1,6 +1,6 @@
-//! Error types for the TypeID suffix module.
+//! Error types for the `TypeID` suffix module.
 //!
-//! This module defines the error types used throughout the TypeID suffix
+//! This module defines the error types used throughout the `TypeID` suffix
 //! implementation, providing detailed information about various failure modes
 //! during encoding, decoding, and validation processes.
 
@@ -8,18 +8,18 @@ use std::fmt;
 #[cfg(feature = "instrument")]
 use tracing::error;
 
-/// Represents errors that can occur during TypeID suffix decoding.
+/// Represents errors that can occur during `TypeID` suffix decoding.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DecodeError {
-    /// Represents an error with the TypeID suffix.
+    /// Represents an error with the `TypeID` suffix.
     InvalidSuffix(InvalidSuffixReason),
     /// Represents an error with the underlying UUID.
     InvalidUuid(InvalidUuidReason),
 }
 
-/// Specifies the reason for an invalid TypeID suffix.
+/// Specifies the reason for an invalid `TypeID` suffix.
 ///
-/// This enum provides more granular information about why a TypeID suffix
+/// This enum provides more granular information about why a `TypeID` suffix
 /// is considered invalid.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum InvalidSuffixReason {
@@ -36,10 +36,10 @@ pub enum InvalidSuffixReason {
 /// Specifies the reason for an invalid UUID.
 ///
 /// This enum provides more detailed information about why a UUID
-/// is considered invalid in the context of TypeID.
+/// is considered invalid in the context of `TypeID`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum InvalidUuidReason {
-    /// The UUID version is not valid for this TypeID.
+    /// The UUID version is not valid for this `TypeID`.
     InvalidVersion,
     /// The UUID variant is not RFC4122.
     InvalidVariant,
@@ -50,7 +50,7 @@ pub enum InvalidUuidReason {
 impl std::fmt::Display for DecodeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let msg = match self {
-            Self::InvalidSuffix(reason) => format!("Invalid TypeID suffix: {reason}"),
+            Self::InvalidSuffix(reason) => format!("Invalid `TypeID` suffix: {reason}"),
             Self::InvalidUuid(reason) => format!("Invalid UUID: {reason}"),
         };
 
@@ -94,5 +94,5 @@ impl std::fmt::Display for InvalidUuidReason {
     }
 }
 
-/// Implement the standard Error trait for DecodeError.
+/// Implement the standard Error trait for `DecodeError`.
 impl std::error::Error for DecodeError {}
