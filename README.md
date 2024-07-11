@@ -44,11 +44,11 @@ use uuid::Uuid;
 fn main() {
     // Create a `TypeId`suffix from a `UUIDv7`
     let uuid = Uuid::now_v7();
-    let suffix = TypeIdSuffix::<UuidV7>::new(uuid).expect("Valid `UUIDv7`");
+    let suffix = TypeIdSuffix::new(uuid).expect("Valid `UUIDv7`");
     println!("TypeID suffix: {}", suffix);
 
     // Parse a `TypeId`suffix from a string
-    let parsed_suffix = TypeIdSuffix::<UuidV7>::from_str("01h455vb4pex5vsknk084sn02q").expect("Valid suffix");
+    let parsed_suffix = TypeIdSuffix::from_str("01h455vb4pex5vsknk084sn02q").expect("Valid suffix");
     
     // Convert back to a UUID
     let recovered_uuid: Uuid = suffix.try_into().expect("Valid UUID");
@@ -64,7 +64,7 @@ use uuid::Uuid;
 
 fn main() {
     let uuid = Uuid::new_v4();
-    let suffix = TypeIdSuffix::<UuidOther>::new(uuid).expect("Valid UUID");
+    let suffix = TypeIdSuffix::new(uuid).expect("Valid UUID");
     println!("TypeID suffix for UUIDv4: {}", suffix);
 }
 ```
@@ -78,7 +78,7 @@ use typeid_suffix::prelude::*;
 use std::str::FromStr;
 
 fn main() {
-    let result = TypeIdSuffix::<UuidV7>::from_str("invalid_suffix");
+    let result = TypeIdSuffix::from_str("invalid_suffix");
     match result {
         Ok(_) => println!("Valid suffix"),
         Err(e) => println!("Invalid suffix: {}", e),
