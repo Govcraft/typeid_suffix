@@ -1,5 +1,5 @@
-//! This module implements the TypeIdSuffix struct and its associated functionality.
-//! TypeIdSuffix represents the suffix part of a TypeId, which is a base32-encoded UUID.
+//! This module implements the ``TypeIdSuffix`` struct and its associated functionality.
+//! ``TypeIdSuffix`` represents the suffix part of a `TypeId`, which is a base32-encoded UUID.
 
 use std::borrow::Borrow;
 use std::cmp::Ordering;
@@ -13,18 +13,18 @@ use crate::encoding::{decode_base32, encode_base32};
 use crate::errors::{DecodeError, InvalidSuffixReason, InvalidUuidReason};
 use crate::versions::{UuidVersion, V7};
 
-/// Represents a TypeId suffix, which is a 26-character base32-encoded UUID.
+/// Represents a `TypeId` suffix, which is a 26-character base32-encoded UUID.
 ///
-/// This struct encapsulates the suffix part of a TypeId, providing methods for
+/// This struct encapsulates the suffix part of a `TypeId`, providing methods for
 /// creation, conversion, and validation.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct TypeIdSuffix([u8; 26]);
 
 impl TypeIdSuffix {
-    /// Creates a new TypeIdSuffix from a specific UUID version.
+    /// Creates a new ``TypeIdSuffix`` from a specific UUID version.
     ///
     /// This method generates a new UUID of the specified version and encodes it
-    /// as a TypeIdSuffix.
+    /// as a ``TypeIdSuffix``.
     ///
     /// # Type Parameters
     ///
@@ -32,7 +32,7 @@ impl TypeIdSuffix {
     ///
     /// # Returns
     ///
-    /// A new `TypeIdSuffix` instance.
+    /// A new ``TypeIdSuffix`` instance.
     ///
     /// # Examples
     ///
@@ -51,7 +51,7 @@ impl TypeIdSuffix {
         Self(encode_base32(V::default().as_bytes()))
     }
 
-    /// Checks if a given UUID is valid according to the TypeId specification.
+    /// Checks if a given UUID is valid according to the `TypeId` specification.
     ///
     /// This method validates both the variant and version of the UUID.
     ///
@@ -87,13 +87,24 @@ impl TypeIdSuffix {
         is_valid_variant || is_valid_version
     }
 
-    /// Converts the TypeIdSuffix to a UUID.
+    /// Converts the `TypeIdSuffix` to a UUID.
     ///
     /// This method decodes the base32-encoded suffix back into a UUID.
     ///
     /// # Returns
     ///
-    /// The `Uuid` represented by this TypeIdSuffix.
+    /// The `Uuid` represented by this `TypeIdSuffix`.
+    ///
+    /// # Panics
+    ///
+    /// This method uses `expect()` internally, but it should never panic under normal circumstances.
+    /// A panic would indicate a serious internal inconsistency in the `TypeIdSuffix` struct,
+    /// which should be reported as a bug in the library.
+    ///
+    /// The reason it shouldn't panic is that:
+    /// 1. The `TypeIdSuffix` is always created from a valid UUID or a valid base32 string.
+    /// 2. All creation methods (`new()`, `from_str()`, `From<Uuid>`) perform thorough validation.
+    /// 3. The internal representation is immutable after creation.
     ///
     /// # Examples
     ///
@@ -110,14 +121,14 @@ impl TypeIdSuffix {
         Uuid::from_bytes(decoded_bytes)
     }
 
-    /// Returns a string slice of the TypeIdSuffix.
+    /// Returns a string slice of the ``TypeIdSuffix``.
     ///
     /// This method provides a way to access the underlying string representation
-    /// of the TypeIdSuffix.
+    /// of the ``TypeIdSuffix``.
     ///
     /// # Returns
     ///
-    /// A string slice containing the base32-encoded TypeIdSuffix.
+    /// A string slice containing the base32-encoded ``TypeIdSuffix``.
     ///
     /// # Examples
     ///
@@ -138,7 +149,7 @@ impl TypeIdSuffix {
 }
 
 impl TypeIdSuffix {
-    /// Checks if the TypeIdSuffix contains a V6 or V7 UUID.
+    /// Checks if the ``TypeIdSuffix`` contains a V6 or V7 UUID.
     fn is_sortable(&self) -> bool {
         matches!(self.to_uuid().get_version(), Some(Version::SortMac | Version::SortRand))
     }
@@ -162,14 +173,14 @@ impl PartialOrd for TypeIdSuffix {
 }
 
 impl Default for TypeIdSuffix {
-    /// Creates a default TypeIdSuffix using UUIDv7.
+    /// Creates a default ``TypeIdSuffix`` using `UUIDv7`.
     ///
-    /// This implementation uses `V7` (UUIDv7) as the default UUID version
-    /// for generating a TypeIdSuffix.
+    /// This implementation uses `V7` (`UUIDv7`) as the default UUID version
+    /// for generating a ``TypeIdSuffix``.
     ///
     /// # Returns
     ///
-    /// A new `TypeIdSuffix` instance generated from a UUIDv7.
+    /// A new ``TypeIdSuffix`` instance generated from a `UUIDv7`.
     fn default() -> Self {
         Self::new::<V7>()
     }
@@ -202,36 +213,36 @@ impl fmt::Display for TypeIdSuffix {
 }
 
 impl From<&TypeIdSuffix> for Uuid {
-    /// Converts a reference to a TypeIdSuffix into a Uuid.
+    /// Converts a reference to a ``TypeIdSuffix`` into a Uuid.
     ///
-    /// This implementation allows for efficient conversion from a TypeIdSuffix
+    /// This implementation allows for efficient conversion from a `TypeIdSuffix`
     /// reference to a Uuid without unnecessary cloning.
     ///
     /// # Arguments
     ///
-    /// * `value`: A reference to the TypeIdSuffix to convert.
+    /// * `value`: A reference to the ``TypeIdSuffix`` to convert.
     ///
     /// # Returns
     ///
-    /// The `Uuid` represented by the TypeIdSuffix.
+    /// The `Uuid` represented by the ``TypeIdSuffix``.
     fn from(value: &TypeIdSuffix) -> Self {
         value.to_uuid()
     }
 }
 
 impl From<TypeIdSuffix> for Uuid {
-    /// Converts a TypeIdSuffix into a Uuid.
+    /// Converts a ``TypeIdSuffix`` into a Uuid.
     ///
-    /// This implementation allows for conversion from a TypeIdSuffix
-    /// to a Uuid, consuming the original TypeIdSuffix.
+    /// This implementation allows for conversion from a `TypeIdSuffix`
+    /// to a Uuid, consuming the original ``TypeIdSuffix``.
     ///
     /// # Arguments
     ///
-    /// * `value`: The TypeIdSuffix to convert.
+    /// * `value`: The ``TypeIdSuffix`` to convert.
     ///
     /// # Returns
     ///
-    /// The `Uuid` represented by the TypeIdSuffix.
+    /// The `Uuid` represented by the ``TypeIdSuffix``.
     fn from(value: TypeIdSuffix) -> Self {
         value.to_uuid()
     }
@@ -240,10 +251,10 @@ impl From<TypeIdSuffix> for Uuid {
 impl FromStr for TypeIdSuffix {
     type Err = DecodeError;
 
-    /// Parses a string slice into a TypeIdSuffix.
+    /// Parses a string slice into a ``TypeIdSuffix``.
     ///
-    /// This method attempts to create a TypeIdSuffix from a string representation.
-    /// It performs various validations to ensure the input string is a valid TypeIdSuffix.
+    /// This method attempts to create a ``TypeIdSuffix`` from a string representation.
+    /// It performs various validations to ensure the input string is a valid ``TypeIdSuffix``.
     ///
     /// # Arguments
     ///
@@ -251,7 +262,7 @@ impl FromStr for TypeIdSuffix {
     ///
     /// # Returns
     ///
-    /// A `Result` containing either the parsed `TypeIdSuffix` or a `DecodeError`.
+    /// A `Result` containing either the parsed ``TypeIdSuffix`` or a `DecodeError`.
     ///
     /// # Errors
     ///
@@ -260,7 +271,7 @@ impl FromStr for TypeIdSuffix {
     /// - The input string contains non-ASCII characters.
     /// - The first character of the input string is greater than '7'.
     /// - The input string contains invalid base32 characters.
-    /// - The decoded UUID is not valid according to the TypeId specification.
+    /// - The decoded UUID is not valid according to the `TypeId` specification.
     ///
     /// # Examples
     ///
@@ -291,9 +302,9 @@ impl FromStr for TypeIdSuffix {
 }
 
 impl From<Uuid> for TypeIdSuffix {
-    /// Converts a Uuid into a TypeIdSuffix.
+    /// Converts a Uuid into a ``TypeIdSuffix``.
     ///
-    /// This implementation allows for conversion from a Uuid to a TypeIdSuffix.
+    /// This implementation allows for conversion from a Uuid to a ``TypeIdSuffix``.
     ///
     /// # Arguments
     ///
@@ -301,7 +312,7 @@ impl From<Uuid> for TypeIdSuffix {
     ///
     /// # Returns
     ///
-    /// A new `TypeIdSuffix` instance representing the given Uuid.
+    /// A new ``TypeIdSuffix`` instance representing the given Uuid.
     ///
     /// # Examples
     ///
