@@ -17,10 +17,10 @@ use crate::traits::UuidVersion;
 /// use typeid_suffix::prelude::*;
 ///
 /// let uuid = Uuid::now_v7();
-/// assert!(UuidV7::validate(&uuid));
+/// assert!(UuidV7::is_valid_uuid(&uuid));
 ///
 /// let uuid_v4 = Uuid::new_v4();
-/// assert!(!UuidV7::validate(&uuid_v4));
+/// assert!(!UuidV7::is_valid_uuid(&uuid_v4));
 /// ```
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct UuidV7;
@@ -52,12 +52,12 @@ impl UuidVersion for UuidV7 {
     /// use typeid_suffix::prelude::*;
     ///
     /// let uuid_v7 = Uuid::now_v7();
-    /// assert!(UuidV7::validate(&uuid_v7));
+    /// assert!(UuidV7::is_valid_uuid(&uuid_v7));
     ///
     /// let uuid_v4 = Uuid::new_v4();
-    /// assert!(!UuidV7::validate(&uuid_v4));
+    /// assert!(!UuidV7::is_valid_uuid(&uuid_v4));
     /// ```
-    fn validate(uuid: &Uuid) -> bool {
+    fn is_valid_uuid(uuid: &Uuid) -> bool {
         if uuid.get_version() != Some(Version::SortRand) {
             return false; // Could return Error::InvalidUuid(InvalidUuidReason::InvalidVersion)
         }
