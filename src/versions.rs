@@ -1,15 +1,15 @@
-//! UUID version implementations for TypeID.
+//! UUID version implementations for `TypeID`.
 //!
 //! This module provides structs representing different UUID versions
 //! as specified in the UUID specification. Each version implements the
 //! `UuidVersion` trait, allowing them to be used generically within the
-//! TypeID system.
+//! `TypeID` system.
 
 use std::ops::Deref;
 
 use uuid::Uuid;
 
-/// Trait for UUID versions used in TypeID.
+/// Trait for UUID versions used in `TypeID`.
 ///
 /// This trait is implemented by all UUID version structs in this module,
 /// allowing them to be used interchangeably where a UUID version is required.
