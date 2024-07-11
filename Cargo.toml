@@ -1,0 +1,40 @@
+[package]
+name = "typeid_suffix"
+version = "1.0.0"
+edition = "2021"
+authors = ["rrrodzilla@proton.me"]
+description = "A Rust library that implements the UUID suffix part of the `TypeId`Specification"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/GovCraft/typeid_suffix"
+documentation = "https://docs.rs/typeid_suffix"
+readme = "README.md"
+keywords = ["typeid", "suffix", "uuid", "base32", "encoding"]
+categories = ["encoding", "data-structures"]
+
+[features]
+default = []
+instrument = ["tracing"]
+
+[dependencies]
+uuid = { version = "1.3", features = ["v7", "v5", "v4", "v1"] }
+tracing = { version = "0.1.40", optional = true }
+
+[dev-dependencies]
+proptest = { version = "1.5.0", features = ["proptest-macro"] }
+arbitrary = { version = "1.3.2", features = ["derive"] }
+uuid = { version = "1.3", features = ["arbitrary", "v1", "v3", "v4", "v5", "v6", "v7", "v8"] }
+rstest = "0.21.0"
+rstest_reuse = "0.7.0"
+
+[lints.rust]
+missing_docs = "deny"
+unsafe_code = "deny"
+
+[lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+module_name_repetitions = "allow"
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
