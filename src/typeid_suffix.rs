@@ -2,6 +2,7 @@
 //! TypeIdSuffix represents the suffix part of a TypeId, which is a base32-encoded UUID.
 
 use std::borrow::Borrow;
+use std::cmp::Ordering;
 use std::fmt;
 use std::ops::Deref;
 use std::str::FromStr;
@@ -16,7 +17,7 @@ use crate::versions::{UuidVersion, V7};
 ///
 /// This struct encapsulates the suffix part of a TypeId, providing methods for
 /// creation, conversion, and validation.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct TypeIdSuffix([u8; 26]);
 
 impl TypeIdSuffix {
@@ -133,6 +134,30 @@ impl TypeIdSuffix {
         // SAFETY: This unwrap is safe because we know that the internal bytes
         // are always valid ASCII characters, which are valid UTF-8
         std::str::from_utf8(&self.0).unwrap()
+    }
+}
+
+impl TypeIdSuffix {
+    /// Checks if the TypeIdSuffix contains a V6 or V7 UUID.
+    fn is_sortable(&self) -> bool {
+        matches!(self.to_uuid().get_version(), Some(Version::SortMac | Version::SortRand))
+    }
+}
+
+impl Ord for TypeIdSuffix {
+    fn cmp(&self, other: &Self) -> Ordering {
+        if self.is_sortable() && other.is_sortable() {
+            self.to_uuid().cmp(&other.to_uuid())
+        } else {
+            // Fall back to lexicographic ordering for non-V6/V7 UUIDs
+            self.0.cmp(&other.0)
+        }
+    }
+}
+
+impl PartialOrd for TypeIdSuffix {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
     }
 }
 
