@@ -1,15 +1,12 @@
 use std::borrow::Borrow;
 use std::fmt;
-use std::marker::PhantomData;
 use std::ops::Deref;
 use std::str::FromStr;
 
-use uuid::Uuid;
+use uuid::{Uuid, Variant, Version};
 
 use crate::encoding::{decode_base32, encode_base32};
 use crate::errors::{DecodeError, InvalidSuffixReason, InvalidUuidReason};
-use crate::traits::UuidVersion;
-use crate::uuidv7::UuidV7;
 
 /// Represents the suffix part of a `TypeId`.
 ///
@@ -30,13 +27,13 @@ use crate::uuidv7::UuidV7;
 /// use typeid_suffix::prelude::*;
 ///
 /// let uuid = Uuid::now_v7();
-/// let suffix: TypeIdSuffix<UuidV7> = TypeIdSuffix::new(uuid).expect("Valid `UUIDv7`");
+/// let suffix: TypeIdSuffix = TypeIdSuffix::new(uuid).expect("Valid `UUIDv7`");
 /// println!("TypeID suffix: {}", suffix);
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct TypeIdSuffix<V: UuidVersion = UuidV7>([u8; 26], PhantomData<V>);
+pub struct TypeIdSuffix([u8; 26]);
 
-impl<V: UuidVersion> TypeIdSuffix<V> {
+impl TypeIdSuffix {
     /// Creates a new `TypeIdSuffix` from a UUID.
     ///
     /// This method encodes the given UUID into a base32 representation and wraps it
@@ -63,15 +60,40 @@ impl<V: UuidVersion> TypeIdSuffix<V> {
     /// use typeid_suffix::prelude::*;
     ///
     /// let uuid = Uuid::now_v7();
-    /// let suffix = TypeIdSuffix::<UuidV7>::new(uuid).expect("Valid `UUIDv7`");
+    /// let suffix = TypeIdSuffix::new(uuid).expect("Valid `UUIDv7`");
     /// ```
     #[cfg_attr(feature = "instrument", tracing::instrument)]
     #[inline]
     pub fn new(uuid: Uuid) -> Result<Self, DecodeError> {
-        if !V::is_valid_uuid(&uuid) {
+        if !Self::is_valid_uuid(&uuid) {
             return Err(DecodeError::InvalidUuid(InvalidUuidReason::InvalidVersion));
         }
-        Ok(Self(encode_base32(uuid.as_bytes()), PhantomData))
+        Ok(Self(encode_base32(uuid.as_bytes())))
+    }
+
+    fn is_valid_uuid(uuid: &Uuid) -> bool {
+        let is_valid_variant = matches!(
+        uuid.get_variant(),
+        Variant::RFC4122 | Variant::Microsoft | Variant::Future | Variant::NCS
+    );
+
+        let is_valid_version = matches!(
+        uuid.get_version(),
+        Some(
+            Version::Max
+                | Version::Custom
+                | Version::SortMac
+                | Version::Mac
+                | Version::Dce
+                | Version::Md5
+                | Version::Random
+                | Version::Sha1
+                | Version::SortRand
+                | Version::Nil
+        )
+    );
+
+        is_valid_variant || is_valid_version
     }
 
     /// Converts the `TypeIdSuffix` back into a UUID.
@@ -94,7 +116,7 @@ impl<V: UuidVersion> TypeIdSuffix<V> {
         let decoded_bytes = decode_base32(&self.0)?;
         let uuid = Uuid::from_bytes(decoded_bytes);
 
-        if !V::is_valid_uuid(&uuid) {
+        if !Self::is_valid_uuid(&uuid) {
             return Err(DecodeError::InvalidUuid(InvalidUuidReason::InvalidVersion));
         }
         Ok(uuid)
@@ -119,7 +141,7 @@ impl<V: UuidVersion> TypeIdSuffix<V> {
     }
 }
 
-impl Default for TypeIdSuffix<UuidV7> {
+impl Default for TypeIdSuffix {
     /// Creates a new `TypeIdSuffix` with a fresh `UUIDv7`.
     ///
     /// # Examples
@@ -135,7 +157,7 @@ impl Default for TypeIdSuffix<UuidV7> {
     }
 }
 
-impl<V: UuidVersion> Deref for TypeIdSuffix<V> {
+impl Deref for TypeIdSuffix {
     type Target = str;
 
     fn deref(&self) -> &Self::Target {
@@ -143,41 +165,41 @@ impl<V: UuidVersion> Deref for TypeIdSuffix<V> {
     }
 }
 
-impl<V: UuidVersion> AsRef<str> for TypeIdSuffix<V> {
+impl AsRef<str> for TypeIdSuffix {
     fn as_ref(&self) -> &str {
         self
     }
 }
 
-impl<V: UuidVersion> Borrow<str> for TypeIdSuffix<V> {
+impl Borrow<str> for TypeIdSuffix {
     fn borrow(&self) -> &str {
         self
     }
 }
 
-impl<V: UuidVersion> fmt::Display for TypeIdSuffix<V> {
+impl fmt::Display for TypeIdSuffix {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(self)
     }
 }
 
-impl<V: UuidVersion> TryFrom<&TypeIdSuffix<V>> for Uuid {
+impl TryFrom<&TypeIdSuffix> for Uuid {
     type Error = DecodeError;
 
-    fn try_from(value: &TypeIdSuffix<V>) -> Result<Self, Self::Error> {
+    fn try_from(value: &TypeIdSuffix) -> Result<Self, Self::Error> {
         value.to_uuid()
     }
 }
 
-impl<V: UuidVersion> TryFrom<TypeIdSuffix<V>> for Uuid {
+impl TryFrom<TypeIdSuffix> for Uuid {
     type Error = DecodeError;
 
-    fn try_from(value: TypeIdSuffix<V>) -> Result<Self, Self::Error> {
+    fn try_from(value: TypeIdSuffix) -> Result<Self, Self::Error> {
         value.to_uuid()
     }
 }
 
-impl<V: UuidVersion> FromStr for TypeIdSuffix<V> {
+impl FromStr for TypeIdSuffix {
     type Err = DecodeError;
 
     /// Parses a string slice into a `TypeIdSuffix`.
@@ -207,7 +229,7 @@ impl<V: UuidVersion> FromStr for TypeIdSuffix<V> {
     /// use std::str::FromStr;
     /// use typeid_suffix::prelude::*;
     ///
-    /// let suffix: TypeIdSuffix<UuidV7> = TypeIdSuffix::from_str("01h455vb4pex5vsknk084sn02q").expect("Valid `TypeId`suffix");
+    /// let suffix = TypeIdSuffix::from_str("01h455vb4pex5vsknk084sn02q").expect("Valid `TypeId`suffix");
     /// ```
     fn from_str(input: &str) -> Result<Self, Self::Err> {
         if input.len() != 26 {
@@ -222,9 +244,9 @@ impl<V: UuidVersion> FromStr for TypeIdSuffix<V> {
         let encoded_bytes: [u8; 26] = input.as_bytes().try_into().map_err(|_| DecodeError::InvalidSuffix(InvalidSuffixReason::InvalidLength))?;
         let decoded_bytes = decode_base32(&encoded_bytes)?;
         let uuid = Uuid::from_bytes(decoded_bytes);
-        if !V::is_valid_uuid(&uuid) {
+        if !Self::is_valid_uuid(&uuid) {
             return Err(DecodeError::InvalidUuid(InvalidUuidReason::InvalidVersion));
         }
-        Ok(Self(encoded_bytes, PhantomData))
+        Ok(Self(encoded_bytes))
     }
 }
