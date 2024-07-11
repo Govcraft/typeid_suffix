@@ -1,20 +1,20 @@
-//! # TypeID Suffix
+//! # `TypeID` Suffix
 //!
 //! `typeid_suffix` is a Rust library that implements the suffix portion of the
 //! [TypeID Specification](https://github.com/jetpack-io/typeid). It provides
-//! functionality to work with TypeID suffixes, which are base32-encoded
-//! representations of UUIDs used in the TypeID system.
+//! functionality to work with `TypeID` suffixes, which are base32-encoded
+//! representations of UUIDs used in the `TypeID` system.
 //!
 //! This crate offers a robust, efficient, and user-friendly way to generate,
-//! encode, decode, and validate TypeID suffixes, supporting various UUID versions.
+//! encode, decode, and validate `TypeID` suffixes, supporting various UUID versions.
 //!
 //! ## Features
 //!
-//! - **UUID Version Support**: Implements support for UUIDv7 and other UUID versions.
+//! - **UUID Version Support**: Implements support for `UUIDv7` and other UUID versions.
 //! - **Flexible Architecture**: Generic implementation allows for handling various UUID versions.
-//! - **Base32 Encoding/Decoding**: Efficient encoding and decoding of UUIDs to/from base32 TypeID suffixes.
+//! - **Base32 Encoding/Decoding**: Efficient encoding and decoding of UUIDs to/from base32 `TypeID` suffixes.
 //! - **Error Handling**: Comprehensive error types for invalid suffixes and UUIDs.
-//! - **Validation**: Robust validation for TypeID suffixes and UUIDs.
+//! - **Validation**: Robust validation for `TypeID` suffixes and UUIDs.
 //! - **Zero-cost Abstractions**: Designed to have minimal runtime overhead.
 //! - **Optional Tracing**: Integrates with the `tracing` crate for logging (optional feature).
 //!
@@ -29,29 +29,29 @@
 //!
 //! ## Usage Examples
 //!
-//! ### Creating a TypeID Suffix
+//! ### Creating a `TypeID` Suffix
 //!
-//! By default, calling `TypeIdSuffix::default()` produces a suffix made from a UUIDv7
+//! By default, calling `TypeIdSuffix::default()` produces a suffix made from a `UUIDv7`
 //! using the current timestamp.
 //!
 //! ```rust
 //! use typeid_suffix::prelude::*;
 //!
 //! let default_suffix = TypeIdSuffix::default();
-//! println!("Default TypeID suffix: {}", default_suffix);
+//! println!("Default `TypeID` suffix: {}", default_suffix);
 //! ```
 //!
-//! You can also create a TypeID suffix for a specific UUID version:
+//! You can also create a `TypeID` suffix for a specific UUID version:
 //!
 //! ```rust
 //! use typeid_suffix::prelude::*;
 //!
-//! // Create a TypeID suffix from a UUIDv7
+//! // Create a `TypeID` suffix from a `UUIDv7`
 //! let suffix = TypeIdSuffix::new::<V7>();
 //! println!("TypeID suffix: {}", suffix);
 //! ```
 //!
-//! ### Parsing a TypeID Suffix
+//! ### Parsing a `TypeID` Suffix
 //!
 //! ```rust
 //! use std::str::FromStr;
@@ -62,7 +62,7 @@
 //! println!("Parsed suffix: {}", parsed_suffix);
 //! ```
 //!
-//! ### Converting Between UUID and TypeID Suffix
+//! ### Converting Between UUID and `TypeID` Suffix
 //!
 //! ```rust
 //! use typeid_suffix::prelude::*;
@@ -104,8 +104,8 @@
 //!
 //! This project is licensed under either of
 //!
-//! * Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
-//! * MIT license ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
+//! * Apache License, Version 2.0, ([LICENSE-APACHE](http://www.apache.org/licenses/LICENSE-2.0))
+//! * MIT license ([LICENSE-MIT](http://opensource.org/licenses/MIT))
 //!
 //! at your option.
 //!
@@ -177,7 +177,7 @@ mod tests {
 
         #[test]
         fn test_uuidv7_roundtrip(uuid in arbitrary_uuidv7()) {
-            let suffix: TypeIdSuffix = uuid.try_into().expect(" conversion failed");
+            let suffix: TypeIdSuffix = uuid.try_into().expect("conversion failed");
             let suffix_str = suffix.to_uuid().to_string();
             let v7_uuid = Uuid::from_str(&suffix_str).unwrap();
             let decoded: Uuid = v7_uuid.clone().try_into().unwrap();
@@ -187,7 +187,7 @@ mod tests {
 
         #[test]
         fn test_uuid_other_roundtrip(uuid in arbitrary_uuid_other()) {
-            let suffix: TypeIdSuffix = uuid.try_into().expect(" conversion failed");
+            let suffix: TypeIdSuffix = uuid.try_into().expect("conversion failed");
             let v4_uuid = Uuid::from_str(suffix.to_uuid().to_string().as_str()).unwrap();
             let decoded: Uuid = v4_uuid.clone().try_into().unwrap();
             prop_assert_eq!(v4_uuid, decoded);
@@ -196,14 +196,14 @@ mod tests {
 
         #[test]
         fn test_uuidv7_fromstr(uuid in arbitrary_uuid_other()) {
-            let suffix: TypeIdSuffix = uuid.try_into().expect( " conversion failed");
+            let suffix: TypeIdSuffix = uuid.try_into().expect( "conversion failed");
             let from_str = TypeIdSuffix::from_str(&suffix).unwrap();
             prop_assert_eq!(suffix, from_str);
         }
 
         #[test]
         fn test_uuid_other_fromstr(uuid in arbitrary_uuid_other()) {
-            let suffix: TypeIdSuffix = uuid.try_into().expect( " conversion failed");
+            let suffix: TypeIdSuffix = uuid.try_into().expect( "conversion failed");
             let from_str = TypeIdSuffix::from_str(&suffix).unwrap();
             prop_assert_eq!(suffix, from_str);
         }
