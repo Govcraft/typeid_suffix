@@ -10,7 +10,7 @@ fuzz_target!(|data: &[u8]| {
         return;
     }
 
-    // Test `UUIDv7`
+    // Test ``UUIDv7``
     let uuid = Uuid::from_bytes(data[..16].try_into().unwrap());
     if let Ok(suffix) = TypeIdSuffix::new(uuid) {
         // Test encoding
