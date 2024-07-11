@@ -31,13 +31,13 @@
 //!
 //! // Create a `TypeId`suffix from a `UUIDv7`
 //! let uuid = Uuid::now_v7();
-//! let suffix = TypeIdSuffix::<UuidV7>::new(uuid).expect("Valid `UUIDv7`");
+//! let suffix = TypeIdSuffix::new(uuid).expect("Valid `UUIDv7`");
 //!
 //! // Convert the suffix to a string
 //! let suffix_str = suffix.to_string();
 //!
 //! // Parse a `TypeId`suffix from a string
-//! let parsed_suffix = TypeIdSuffix::<UuidV7>::from_str(&suffix_str).expect("Valid suffix");
+//! let parsed_suffix = TypeIdSuffix::from_str(&suffix_str).expect("Valid suffix");
 //!
 //! // Convert back to a UUID
 //! let recovered_uuid: Uuid = suffix.try_into().expect("Valid UUID");
@@ -78,6 +78,8 @@ mod typeid_suffix;
 /// // Now you can use TypeIdSuffix, UuidV7, UuidOther, etc. directly
 /// ```
 pub mod prelude {
+    pub use uuid::{Uuid, Version};
+
     pub use crate::errors::*;
     pub use crate::traits::*;
     pub use crate::typeid_suffix::TypeIdSuffix;
@@ -91,9 +93,9 @@ mod tests {
     use std::str::FromStr;
 
     use proptest::prelude::*;
-    use uuid::{Uuid, Version};
+    use uuid::Uuid;
 
-    use crate::prelude::{TypeIdSuffix, UuidOther, UuidV7};
+    use crate::prelude::TypeIdSuffix;
 
     #[test]
     fn test_typeid_suffix_default() {
@@ -105,7 +107,7 @@ mod tests {
 
     #[test]
     fn test_typeid_suffix_explicit_version() {
-        let _suffix = TypeIdSuffix::<UuidOther>::new(Uuid::new_v4()).unwrap();
+        let _suffix = TypeIdSuffix::new(Uuid::new_v4()).unwrap();
     }
 
     prop_compose! {
@@ -131,7 +133,7 @@ mod tests {
     proptest! {
         #[test]
         fn test_uuidv7_roundtrip(uuid in arbitrary_uuidv7()) {
-            let suffix = TypeIdSuffix::<UuidV7>::new(uuid).unwrap();
+            let suffix = TypeIdSuffix::new(uuid).unwrap();
             let decoded: Uuid = suffix.clone().try_into().unwrap();
             prop_assert_eq!(uuid, decoded);
             prop_assert_eq!(suffix.len(), 26);
@@ -139,7 +141,7 @@ mod tests {
 
         #[test]
         fn test_uuid_other_roundtrip(uuid in arbitrary_uuid_other()) {
-            let suffix = TypeIdSuffix::<UuidOther>::new(uuid).unwrap();
+            let suffix = TypeIdSuffix::new(uuid).unwrap();
             let decoded: Uuid = suffix.clone().try_into().unwrap();
             prop_assert_eq!(uuid, decoded);
             prop_assert_eq!(suffix.len(), 26);
@@ -147,36 +149,29 @@ mod tests {
 
         #[test]
         fn test_uuidv7_fromstr(uuid in arbitrary_uuidv7()) {
-            let suffix = TypeIdSuffix::<UuidV7>::new(uuid).unwrap();
-            let from_str = TypeIdSuffix::<UuidV7>::from_str(&suffix).unwrap();
+            let suffix = TypeIdSuffix::new(uuid).unwrap();
+            let from_str = TypeIdSuffix::from_str(&suffix).unwrap();
             prop_assert_eq!(suffix, from_str);
         }
 
         #[test]
         fn test_uuid_other_fromstr(uuid in arbitrary_uuid_other()) {
-            let suffix = TypeIdSuffix::<UuidOther>::new(uuid).unwrap();
-            let from_str = TypeIdSuffix::<UuidOther>::from_str(&suffix).unwrap();
+            let suffix = TypeIdSuffix::new(uuid).unwrap();
+            let from_str = TypeIdSuffix::from_str(&suffix).unwrap();
             prop_assert_eq!(suffix, from_str);
         }
 
         #[test]
         fn test_invalid_suffix(s in "[0-9a-zA-Z]{26}") {
             if s.as_bytes()[0] > b'7' {
-                prop_assert!(TypeIdSuffix::<UuidV7>::from_str(&s).is_err());
-                prop_assert!(TypeIdSuffix::<UuidOther>::from_str(&s).is_err());
-            }
-        }
-
-        #[test]
-        fn test_uuidv7_validation(uuid in arbitrary_uuid_other()) {
-            if uuid.get_version() != Some(Version::SortRand) {
-                prop_assert!(TypeIdSuffix::<UuidV7>::new(uuid).is_err());
+                prop_assert!(TypeIdSuffix::from_str(&s).is_err());
+                prop_assert!(TypeIdSuffix::from_str(&s).is_err());
             }
         }
 
         #[test]
         fn test_uuid_other_validation(uuid in arbitrary_uuidv7()) {
-            prop_assert!(TypeIdSuffix::<UuidOther>::new(uuid).is_ok());
+            prop_assert!(TypeIdSuffix::new(uuid).is_ok());
         }
 
 
