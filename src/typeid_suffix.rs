@@ -68,7 +68,7 @@ impl<V: UuidVersion> TypeIdSuffix<V> {
     #[cfg_attr(feature = "instrument", tracing::instrument)]
     #[inline]
     pub fn new(uuid: Uuid) -> Result<Self, DecodeError> {
-        if !V::validate(&uuid) {
+        if !V::is_valid_uuid(&uuid) {
             return Err(DecodeError::InvalidUuid(InvalidUuidReason::InvalidVersion));
         }
         Ok(Self(encode_base32(uuid.as_bytes()), PhantomData))
@@ -94,7 +94,7 @@ impl<V: UuidVersion> TypeIdSuffix<V> {
         let decoded_bytes = decode_base32(&self.0)?;
         let uuid = Uuid::from_bytes(decoded_bytes);
 
-        if !V::validate(&uuid) {
+        if !V::is_valid_uuid(&uuid) {
             return Err(DecodeError::InvalidUuid(InvalidUuidReason::InvalidVersion));
         }
         Ok(uuid)
@@ -222,7 +222,7 @@ impl<V: UuidVersion> FromStr for TypeIdSuffix<V> {
         let encoded_bytes: [u8; 26] = input.as_bytes().try_into().map_err(|_| DecodeError::InvalidSuffix(InvalidSuffixReason::InvalidLength))?;
         let decoded_bytes = decode_base32(&encoded_bytes)?;
         let uuid = Uuid::from_bytes(decoded_bytes);
-        if !V::validate(&uuid) {
+        if !V::is_valid_uuid(&uuid) {
             return Err(DecodeError::InvalidUuid(InvalidUuidReason::InvalidVersion));
         }
         Ok(Self(encoded_bytes, PhantomData))
