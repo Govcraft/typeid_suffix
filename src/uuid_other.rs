@@ -15,7 +15,7 @@ use crate::traits::UuidVersion;
 /// use typeid_suffix::prelude::*;
 ///
 /// let uuid = Uuid::new_v4();  // Using a v4 UUID as an example
-/// let suffix = TypeIdSuffix::<UuidOther>::new(uuid).expect("Valid UUID");
+/// let suffix = TypeIdSuffix::new(uuid).expect("Valid UUID");
 /// ```
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct UuidOther;
