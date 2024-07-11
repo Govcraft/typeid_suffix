@@ -46,20 +46,27 @@ impl UuidVersion for UuidOther {
     /// The commented-out code in this method shows a potential implementation
     /// that would check for RFC4122 variant and valid version numbers
     /// (1, 2, 3, 4, 5, or 7).
-    fn validate(uuid: &Uuid) -> bool {
-// .        // // Check that the variant is RFC4122
-    vb\     let mut valid = false;
-        if matches!(uuid.get_variant(), Variant::RFC4122 | Variant::Microsoft | Variant::Future | Variant::NCS) {
-            return true;
-        }
+    fn is_valid_uuid(uuid: &Uuid) -> bool {
+        let is_valid_variant = matches!(
+        uuid.get_variant(),
+        Variant::RFC4122 | Variant::Microsoft | Variant::Future | Variant::NCS
+    );
 
-        // Check that the version is valid (1, 2, 3, 4, 5, or 7)
-        if matches!(
-            uuid.get_version(),
-            Some(Version::SortMac | Version::Mac | Version::Dce | Version::Md5 | Version::Random | Version::Sha1 | Version::SortRand |Version::Nil)
-        ) {
-            valid = true;
-        }
-        valid
-    }
-}
+        let is_valid_version = matches!(
+        uuid.get_version(),
+        Some(
+            Version::Max
+                | Version::Custom
+                | Version::SortMac
+                | Version::Mac
+                | Version::Dce
+                | Version::Md5
+                | Version::Random
+                | Version::Sha1
+                | Version::SortRand
+                | Version::Nil
+        )
+    );
+
+        is_valid_variant || is_valid_version
+    }}
