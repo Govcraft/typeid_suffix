@@ -1,3 +1,6 @@
+//! This module implements the TypeIdSuffix struct and its associated functionality.
+//! TypeIdSuffix represents the suffix part of a TypeId, which is a base32-encoded UUID.
+
 use std::borrow::Borrow;
 use std::fmt;
 use std::ops::Deref;
@@ -7,131 +10,123 @@ use uuid::{Uuid, Variant, Version};
 
 use crate::encoding::{decode_base32, encode_base32};
 use crate::errors::{DecodeError, InvalidSuffixReason, InvalidUuidReason};
+use crate::versions::{UuidVersion, V7};
 
-/// Represents the suffix part of a `TypeId`.
+/// Represents a TypeId suffix, which is a 26-character base32-encoded UUID.
 ///
-/// A `TypeIdSuffix` encapsulates the base32-encoded representation of a UUID,
-/// which forms the suffix part of a `TypeId`. It is generic over a UUID version,
-/// defaulting to `UUIDv7`.
-///
-/// # Type Parameters
-///
-/// * `V`: A type implementing the `UuidVersion` trait, defaulting to `UuidV7`.
-///
-/// # Examples
-///
-/// Creating a new `TypeIdSuffix`:
-///
-/// ```
-/// use uuid::Uuid;
-/// use typeid_suffix::prelude::*;
-///
-/// let uuid = Uuid::now_v7();
-/// let suffix: TypeIdSuffix = TypeIdSuffix::new(uuid).expect("Valid `UUIDv7`");
-/// println!("TypeID suffix: {}", suffix);
-/// ```
+/// This struct encapsulates the suffix part of a TypeId, providing methods for
+/// creation, conversion, and validation.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TypeIdSuffix([u8; 26]);
 
 impl TypeIdSuffix {
-    /// Creates a new `TypeIdSuffix` from a UUID.
+    /// Creates a new TypeIdSuffix from a specific UUID version.
     ///
-    /// This method encodes the given UUID into a base32 representation and wraps it
-    /// in a `TypeIdSuffix`. The UUID must be valid for the specified version `V`.
+    /// This method generates a new UUID of the specified version and encodes it
+    /// as a TypeIdSuffix.
     ///
-    /// # Arguments
+    /// # Type Parameters
     ///
-    /// * `uuid`: The UUID to encode into a `TypeId`suffix.
+    /// * `V`: A type that implements `UuidVersion` and `Default`.
     ///
     /// # Returns
     ///
-    /// Returns a `Result` which is:
-    /// - `Ok(TypeIdSuffix)` if the UUID is valid for the specified version.
-    /// - `Err(Error::InvalidUuid)` if the UUID doesn't meet the version-specific criteria.
-    ///
-    /// # Errors
-    ///
-    /// This function will return an error if the UUID does not meet the version-specific criteria.
+    /// A new `TypeIdSuffix` instance.
     ///
     /// # Examples
     ///
     /// ```
-    /// use uuid::Uuid;
     /// use typeid_suffix::prelude::*;
     ///
-    /// let uuid = Uuid::now_v7();
-    /// let suffix = TypeIdSuffix::new(uuid).expect("Valid `UUIDv7`");
+    /// let suffix = TypeIdSuffix::new::<V4>();
     /// ```
     #[cfg_attr(feature = "instrument", tracing::instrument)]
     #[inline]
-    pub fn new(uuid: Uuid) -> Result<Self, DecodeError> {
-        if !Self::is_valid_uuid(&uuid) {
-            return Err(DecodeError::InvalidUuid(InvalidUuidReason::InvalidVersion));
-        }
-        Ok(Self(encode_base32(uuid.as_bytes())))
+    #[must_use]
+    pub fn new<V>() -> Self
+    where
+        V: UuidVersion + Default,
+    {
+        Self(encode_base32(V::default().as_bytes()))
     }
 
-    fn is_valid_uuid(uuid: &Uuid) -> bool {
+    /// Checks if a given UUID is valid according to the TypeId specification.
+    ///
+    /// This method validates both the variant and version of the UUID.
+    ///
+    /// # Arguments
+    ///
+    /// * `uuid`: A reference to the `Uuid` to be validated.
+    ///
+    /// # Returns
+    ///
+    /// `true` if the UUID is valid, `false` otherwise.
+    const fn is_valid_uuid(uuid: &Uuid) -> bool {
         let is_valid_variant = matches!(
-        uuid.get_variant(),
-        Variant::RFC4122 | Variant::Microsoft | Variant::Future | Variant::NCS
-    );
+            uuid.get_variant(),
+            Variant::RFC4122 | Variant::Microsoft | Variant::Future | Variant::NCS
+        );
 
         let is_valid_version = matches!(
-        uuid.get_version(),
-        Some(
-            Version::Max
-                | Version::Custom
-                | Version::SortMac
-                | Version::Mac
-                | Version::Dce
-                | Version::Md5
-                | Version::Random
-                | Version::Sha1
-                | Version::SortRand
-                | Version::Nil
-        )
-    );
+            uuid.get_version(),
+            Some(
+                Version::Max
+                    | Version::Custom
+                    | Version::SortMac
+                    | Version::Mac
+                    | Version::Dce
+                    | Version::Md5
+                    | Version::Random
+                    | Version::Sha1
+                    | Version::SortRand
+                    | Version::Nil
+            )
+        );
 
         is_valid_variant || is_valid_version
     }
 
-    /// Converts the `TypeIdSuffix` back into a UUID.
+    /// Converts the TypeIdSuffix to a UUID.
     ///
     /// This method decodes the base32-encoded suffix back into a UUID.
     ///
     /// # Returns
     ///
-    /// Returns a `Result` which is:
-    /// - `Ok(Uuid)` if the decoding is successful and the resulting UUID is valid for the version.
-    /// - `Err(Error)` if decoding fails or the resulting UUID is invalid for the version.
+    /// The `Uuid` represented by this TypeIdSuffix.
     ///
-    /// # Errors
+    /// # Examples
     ///
-    /// This function will return an error if:
-    /// - The base32 decoding fails.
-    /// - The resulting UUID does not meet the version-specific criteria.
+    /// ```
+    /// use typeid_suffix::prelude::*;
+    ///
+    /// let suffix = TypeIdSuffix::new::<V4>();
+    /// let uuid = suffix.to_uuid();
+    /// ```
     #[inline]
-    fn to_uuid(&self) -> Result<Uuid, DecodeError> {
-        let decoded_bytes = decode_base32(&self.0)?;
-        let uuid = Uuid::from_bytes(decoded_bytes);
-
-        if !Self::is_valid_uuid(&uuid) {
-            return Err(DecodeError::InvalidUuid(InvalidUuidReason::InvalidVersion));
-        }
-        Ok(uuid)
+    #[must_use]
+    pub fn to_uuid(&self) -> Uuid {
+        let decoded_bytes = decode_base32(&self.0).expect("This should never fail because we've already validated the input");
+        Uuid::from_bytes(decoded_bytes)
     }
 
-    /// Returns a string slice of the base32-encoded suffix.
+    /// Returns a string slice of the TypeIdSuffix.
+    ///
+    /// This method provides a way to access the underlying string representation
+    /// of the TypeIdSuffix.
     ///
     /// # Returns
     ///
-    /// A string slice containing the base32-encoded representation of the UUID.
+    /// A string slice containing the base32-encoded TypeIdSuffix.
     ///
-    /// # Panics
+    /// # Examples
     ///
-    /// This function will panic if the internal bytes are not valid UTF-8.
-    /// This should never happen as the internal bytes are guaranteed to be ASCII.
+    /// ```
+    /// use typeid_suffix::prelude::*;
+    ///
+    /// let suffix = TypeIdSuffix::new::<V4>();
+    /// let suffix_str = suffix.as_ref();
+    /// assert_eq!(suffix_str.len(), 26);
+    /// ```
     #[must_use]
     #[inline]
     fn as_str(&self) -> &str {
@@ -142,18 +137,16 @@ impl TypeIdSuffix {
 }
 
 impl Default for TypeIdSuffix {
-    /// Creates a new `TypeIdSuffix` with a fresh `UUIDv7`.
+    /// Creates a default TypeIdSuffix using UUIDv7.
     ///
-    /// # Examples
+    /// This implementation uses `V7` (UUIDv7) as the default UUID version
+    /// for generating a TypeIdSuffix.
     ///
-    /// ```
-    /// use typeid_suffix::prelude::*;
+    /// # Returns
     ///
-    /// let suffix = TypeIdSuffix::default();
-    /// ```
+    /// A new `TypeIdSuffix` instance generated from a UUIDv7.
     fn default() -> Self {
-        let uuid = Uuid::now_v7();
-        Self::new(uuid).expect("Generated `UUIDv7` should always be valid")
+        Self::new::<V7>()
     }
 }
 
@@ -183,18 +176,38 @@ impl fmt::Display for TypeIdSuffix {
     }
 }
 
-impl TryFrom<&TypeIdSuffix> for Uuid {
-    type Error = DecodeError;
-
-    fn try_from(value: &TypeIdSuffix) -> Result<Self, Self::Error> {
+impl From<&TypeIdSuffix> for Uuid {
+    /// Converts a reference to a TypeIdSuffix into a Uuid.
+    ///
+    /// This implementation allows for efficient conversion from a TypeIdSuffix
+    /// reference to a Uuid without unnecessary cloning.
+    ///
+    /// # Arguments
+    ///
+    /// * `value`: A reference to the TypeIdSuffix to convert.
+    ///
+    /// # Returns
+    ///
+    /// The `Uuid` represented by the TypeIdSuffix.
+    fn from(value: &TypeIdSuffix) -> Self {
         value.to_uuid()
     }
 }
 
-impl TryFrom<TypeIdSuffix> for Uuid {
-    type Error = DecodeError;
-
-    fn try_from(value: TypeIdSuffix) -> Result<Self, Self::Error> {
+impl From<TypeIdSuffix> for Uuid {
+    /// Converts a TypeIdSuffix into a Uuid.
+    ///
+    /// This implementation allows for conversion from a TypeIdSuffix
+    /// to a Uuid, consuming the original TypeIdSuffix.
+    ///
+    /// # Arguments
+    ///
+    /// * `value`: The TypeIdSuffix to convert.
+    ///
+    /// # Returns
+    ///
+    /// The `Uuid` represented by the TypeIdSuffix.
+    fn from(value: TypeIdSuffix) -> Self {
         value.to_uuid()
     }
 }
@@ -202,26 +215,27 @@ impl TryFrom<TypeIdSuffix> for Uuid {
 impl FromStr for TypeIdSuffix {
     type Err = DecodeError;
 
-    /// Parses a string slice into a `TypeIdSuffix`.
+    /// Parses a string slice into a TypeIdSuffix.
+    ///
+    /// This method attempts to create a TypeIdSuffix from a string representation.
+    /// It performs various validations to ensure the input string is a valid TypeIdSuffix.
     ///
     /// # Arguments
     ///
-    /// * `s`: The string slice to parse.
+    /// * `input`: The string slice to parse.
     ///
     /// # Returns
     ///
-    /// Returns a `Result` which is:
-    /// - `Ok(TypeIdSuffix)` if the string is a valid base32-encoded `TypeId`suffix.
-    /// - `Err(Error)` if the string is not a valid `TypeId`suffix.
+    /// A `Result` containing either the parsed `TypeIdSuffix` or a `DecodeError`.
     ///
     /// # Errors
     ///
     /// This function will return an error if:
-    /// - The string is not exactly 26 characters long.
-    /// - The string contains non-ASCII characters.
-    /// - The first character is greater than '7'.
-    /// - The string contains characters not in the base32 alphabet.
-    /// - The decoded UUID is not valid for the specified version.
+    /// - The input string is not exactly 26 characters long.
+    /// - The input string contains non-ASCII characters.
+    /// - The first character of the input string is greater than '7'.
+    /// - The input string contains invalid base32 characters.
+    /// - The decoded UUID is not valid according to the TypeId specification.
     ///
     /// # Examples
     ///
@@ -229,7 +243,7 @@ impl FromStr for TypeIdSuffix {
     /// use std::str::FromStr;
     /// use typeid_suffix::prelude::*;
     ///
-    /// let suffix = TypeIdSuffix::from_str("01h455vb4pex5vsknk084sn02q").expect("Valid `TypeId`suffix");
+    /// let suffix = TypeIdSuffix::from_str("01h455vb4pex5vsknk084sn02q").unwrap();
     /// ```
     fn from_str(input: &str) -> Result<Self, Self::Err> {
         if input.len() != 26 {
@@ -248,5 +262,34 @@ impl FromStr for TypeIdSuffix {
             return Err(DecodeError::InvalidUuid(InvalidUuidReason::InvalidVersion));
         }
         Ok(Self(encoded_bytes))
+    }
+}
+
+impl From<Uuid> for TypeIdSuffix {
+    /// Converts a Uuid into a TypeIdSuffix.
+    ///
+    /// This implementation allows for conversion from a Uuid to a TypeIdSuffix.
+    ///
+    /// # Arguments
+    ///
+    /// * `value`: The Uuid to convert.
+    ///
+    /// # Returns
+    ///
+    /// A new `TypeIdSuffix` instance representing the given Uuid.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use uuid::Uuid;
+    /// use typeid_suffix::prelude::*;
+    ///
+    /// let uuid = Uuid::new_v4();
+    /// let suffix: TypeIdSuffix = uuid.into();
+    /// ```
+    fn from(value: Uuid) -> Self {
+        // SAFETY: The Uuid crate guarantees that the bytes are always 16 bytes long
+        let encoded_bytes = encode_base32(value.as_bytes());
+        Self(encoded_bytes)
     }
 }
