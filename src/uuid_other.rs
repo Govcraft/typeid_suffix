@@ -1,4 +1,5 @@
-use uuid::{Uuid, Version};
+use uuid::{Uuid, Variant, Version};
+
 use crate::traits::UuidVersion;
 
 /// Marker struct for UUID versions other than v7.
@@ -45,21 +46,20 @@ impl UuidVersion for UuidOther {
     /// The commented-out code in this method shows a potential implementation
     /// that would check for RFC4122 variant and valid version numbers
     /// (1, 2, 3, 4, 5, or 7).
-    fn validate(_uuid: &Uuid) -> bool {
-        // This is what I'd like to do but unfortunately
-        // V3 of the typeid specification is not strict enough
-        // to allow for this. So we'll just return true for now
-        // and let the rest of the code handle the decoding validation
-        // // Check that the variant is RFC4122
-        // if uuid.get_variant() != Variant::RFC4122 {
-        //     return false; // Could return Error::InvalidUuid(InvalidUuidReason::InvalidVariant)
-        // }
-        //
-        // // Check that the version is valid (1, 2, 3, 4, 5, or 7)
-        // if !matches!(
-        //     uuid.get_version(),
-        //     Some(Version::SortMac | Version::Mac | Version::Dce | Version::Md5 | Version::Random | Version::Sha1 | Version::SortRand)
-        // )
-        true
+    fn validate(uuid: &Uuid) -> bool {
+// .        // // Check that the variant is RFC4122
+    vb\     let mut valid = false;
+        if matches!(uuid.get_variant(), Variant::RFC4122 | Variant::Microsoft | Variant::Future | Variant::NCS) {
+            return true;
+        }
+
+        // Check that the version is valid (1, 2, 3, 4, 5, or 7)
+        if matches!(
+            uuid.get_version(),
+            Some(Version::SortMac | Version::Mac | Version::Dce | Version::Md5 | Version::Random | Version::Sha1 | Version::SortRand |Version::Nil)
+        ) {
+            valid = true;
+        }
+        valid
     }
 }
