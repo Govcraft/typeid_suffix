@@ -22,7 +22,7 @@ use uuid::{Uuid, Version};
 /// impl UuidVersion for MyCustomUuidVersion {
 ///     const VERSION: Option<Version> = Some(Version::Random);  // Example: Using v4
 ///
-///     fn validate(uuid: &Uuid) -> bool {
+///     fn is_valid_uuid(uuid: &Uuid) -> bool {
 ///         uuid.get_version() == Some(Version::Random)
 ///     }
 /// }
@@ -45,7 +45,7 @@ pub trait UuidVersion {
     /// impl UuidVersion for UuidV4 {
     ///     const VERSION: Option<Version> = Some(Version::Random);
     ///     // ... other implementation details
-    /// #    fn validate(_: &uuid::Uuid) -> bool { true }
+    /// #    fn is_valid_uuid(_: &uuid::Uuid) -> bool { true }
     /// }
     /// ```
     const VERSION: Option<Version>;
@@ -74,13 +74,13 @@ pub trait UuidVersion {
     /// impl UuidVersion for UuidV7 {
     ///     const VERSION: Option<Version> = Some(Version::SortRand);
     ///
-    ///     fn validate(uuid: &Uuid) -> bool {
+    ///     fn is_valid_uuid(uuid: &Uuid) -> bool {
     ///         uuid.get_version() == Some(Version::SortRand)
     ///     }
     /// }
     ///
     /// let uuid = Uuid::now_v7();
-    /// assert!(UuidV7::validate(&uuid));
+    /// assert!(UuidV7::is_valid_uuid(&uuid));
     /// ```
-    fn validate(uuid: &Uuid) -> bool;
+    fn is_valid_uuid(uuid: &Uuid) -> bool;
 }
