@@ -12,14 +12,14 @@ macro_rules! create_test_vector {
             let suffix = typeid.split('_').last().unwrap();
 
             // Test decoding
-            let decoded = TypeIdSuffix::<UuidOther>::from_str(suffix)
+            let decoded = TypeIdSuffix::from_str(suffix)
                 .unwrap_or_else(|e| panic!("Failed to decode `TypeId`suffix: {:?}", e));
             let uuid = Uuid::parse_str(uuid_str)
                 .unwrap_or_else(|e| panic!("Failed to parse UUID: {:?}", e));
             assert_eq!(Uuid::try_from(&decoded).unwrap(), uuid, "Decoding failed");
 
             // Test encoding
-            let encoded = TypeIdSuffix::<UuidOther>::new(uuid)
+            let encoded = TypeIdSuffix::new(uuid)
                 .unwrap_or_else(|e| panic!("Failed to create `TypeId`suffix: {:?}", e));
             assert_eq!(encoded, decoded, "Encoding failed");
         }
