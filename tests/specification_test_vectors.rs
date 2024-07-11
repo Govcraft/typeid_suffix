@@ -19,8 +19,7 @@ macro_rules! create_test_vector {
             assert_eq!(Uuid::try_from(&decoded).unwrap(), uuid, "Decoding failed");
 
             // Test encoding
-            let encoded = TypeIdSuffix::new(uuid)
-                .unwrap_or_else(|e| panic!("Failed to create `TypeId`suffix: {:?}", e));
+            let encoded : TypeIdSuffix = uuid.into();
             assert_eq!(encoded, decoded, "Encoding failed");
         }
     };
