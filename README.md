@@ -6,6 +6,10 @@
 
 A Rust library that implements the suffix portion of the [TypeID Specification](https://github.com/jetpack-io/typeid). It provides functionality to work with `TypeId`suffixes, which are base32-encoded representations of UUIDs used in the `TypeId`system.
 
+Combined with the [TypeIdPrefix crate](https://crates.io/crates/typeid_prefix) to comprise the [mti (Magic Type Id) crate](https://crates.io/crates/mti).
+
+Use the [mti (Magic Type Id) crate](https://crates.io/crates/mti) for a holistic implementation of the TypeID specification.
+
 ## Features
 
 - **UUID Version Support**: Implements support for `UUIDv7` and other UUID versions.
