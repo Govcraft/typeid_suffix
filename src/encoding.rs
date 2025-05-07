@@ -52,7 +52,7 @@ pub fn decode_base32(encoded: &[u8; 26]) -> Result<[u8; 16], DecodeError> {
             return Err(DecodeError::InvalidSuffix(InvalidSuffixReason::InvalidCharacter));
         }
         // Shift the existing number left by 5 bits and add the new 5-bit value
-        uuid_int = (uuid_int << 5) | (value as u128);
+        uuid_int = (uuid_int << 5) | u128::from(value);
     }
 
     // Convert the resulting 128-bit integer back to a 16-byte array in big-endian order

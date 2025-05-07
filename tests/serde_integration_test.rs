@@ -1,6 +1,6 @@
-//! Integration tests for serde functionality of TypeIdSuffix.
+//! Integration tests for serde functionality of `TypeIdSuffix`.
 //!
-//! These tests verify that TypeIdSuffix can be properly serialized and
+//! These tests verify that `TypeIdSuffix` can be properly serialized and
 //! deserialized using serde with various formats and in different contexts.
 
 #![cfg(feature = "serde")]
@@ -8,7 +8,6 @@
 use std::collections::HashMap;
 use typeid_suffix::prelude::*;
 use serde::{Serialize, Deserialize};
-use serde_json;
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 struct User {
@@ -46,7 +45,7 @@ fn test_serde_in_complex_struct() {
     
     let record = Record {
         id: TypeIdSuffix::default(),
-        timestamp: 1620000000,
+        timestamp: 1_620_000_000,
         data,
     };
     

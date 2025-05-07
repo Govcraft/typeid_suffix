@@ -346,7 +346,7 @@ impl Serialize for TypeIdSuffix {
     /// let json = serde_json::to_string(&suffix).unwrap();
     /// // The JSON string will be the suffix string, e.g., "\"01h455vb4pex5vsknk084sn02q\""
     /// assert!(json.starts_with("\"") && json.ends_with("\""));
-    /// assert_eq!(json.trim_matches('"'), suffix.as_str());
+    /// assert_eq!(json.trim_matches('"'), suffix.as_ref());
     /// # }
     /// ```
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -361,7 +361,7 @@ impl Serialize for TypeIdSuffix {
 impl<'de> Deserialize<'de> for TypeIdSuffix {
     /// Deserializes a `TypeIdSuffix` from its string representation.
     ///
-    /// This expects a string that is a valid TypeID suffix.
+    /// This expects a string that is a valid `TypeID` suffix.
     ///
     /// # Errors
     ///
@@ -388,6 +388,6 @@ impl<'de> Deserialize<'de> for TypeIdSuffix {
         D: Deserializer<'de>,
     {
         let s = String::deserialize(deserializer)?;
-        TypeIdSuffix::from_str(&s).map_err(serde::de::Error::custom)
+        Self::from_str(&s).map_err(serde::de::Error::custom)
     }
 }

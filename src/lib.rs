@@ -177,7 +177,7 @@ mod tests {
     #[test]
     fn test_typeid_suffix_default() {
         let suffix = TypeIdSuffix::default();
-        let uuid: Uuid = suffix.try_into().unwrap();
+        let uuid: Uuid = suffix.into();
         assert_eq!(uuid.get_version(), Some(uuid::Version::SortRand));
     }
 
@@ -216,7 +216,7 @@ mod tests {
         fn test_typeid_suffix_serialize() {
             let suffix = TypeIdSuffix::default();
             let serialized = serde_json::to_string(&suffix).unwrap();
-            assert!(serialized.starts_with("\"") && serialized.ends_with("\""));
+            assert!(serialized.starts_with('"') && serialized.ends_with('"'));
             assert_eq!(serialized.len(), 28); // 26 chars + 2 quotes
         }
         
@@ -239,33 +239,33 @@ mod tests {
 
         #[test]
         fn test_uuidv7_roundtrip(uuid in arbitrary_uuidv7()) {
-            let suffix: TypeIdSuffix = uuid.try_into().expect("conversion failed");
+            let suffix: TypeIdSuffix = uuid.into();
             let suffix_str = suffix.to_uuid().to_string();
             let v7_uuid = Uuid::from_str(&suffix_str).unwrap();
-            let decoded: Uuid = v7_uuid.clone().try_into().unwrap();
+            let decoded: Uuid = v7_uuid;
             prop_assert_eq!(v7_uuid, decoded);
             prop_assert_eq!(suffix.len(), 26);
         }
 
         #[test]
         fn test_uuid_other_roundtrip(uuid in arbitrary_uuid_other()) {
-            let suffix: TypeIdSuffix = uuid.try_into().expect("conversion failed");
+            let suffix: TypeIdSuffix = uuid.into();
             let v4_uuid = Uuid::from_str(suffix.to_uuid().to_string().as_str()).unwrap();
-            let decoded: Uuid = v4_uuid.clone().try_into().unwrap();
+            let decoded: Uuid = v4_uuid;
             prop_assert_eq!(v4_uuid, decoded);
             prop_assert_eq!(suffix.len(), 26);
         }
 
         #[test]
         fn test_uuidv7_fromstr(uuid in arbitrary_uuid_other()) {
-            let suffix: TypeIdSuffix = uuid.try_into().expect( "conversion failed");
+            let suffix: TypeIdSuffix = uuid.into();
             let from_str = TypeIdSuffix::from_str(&suffix).unwrap();
             prop_assert_eq!(suffix, from_str);
         }
 
         #[test]
         fn test_uuid_other_fromstr(uuid in arbitrary_uuid_other()) {
-            let suffix: TypeIdSuffix = uuid.try_into().expect( "conversion failed");
+            let suffix: TypeIdSuffix = uuid.into();
             let from_str = TypeIdSuffix::from_str(&suffix).unwrap();
             prop_assert_eq!(suffix, from_str);
         }

@@ -1,6 +1,6 @@
-//! Unit tests for TypeIdSuffix functionality.
+//! Unit tests for `TypeIdSuffix` functionality.
 //!
-//! These tests verify the core functionality of TypeIdSuffix, including
+//! These tests verify the core functionality of `TypeIdSuffix`, including
 //! encoding/decoding roundtrips, compatibility with different UUID versions,
 //! and validation of invalid inputs.
 
@@ -13,14 +13,16 @@ use typeid_suffix::prelude::*;
 #[test]
 fn test_encode_decode_roundtrip_v7() {
     let uuid = TypeIdSuffix::default();
-    let decoded = uuid.clone().try_into().unwrap();
+    let uuid_to_uuid = uuid.to_uuid();
+    let decoded: TypeIdSuffix = uuid_to_uuid.into();
     assert_eq!(uuid, decoded);
 }
 
 #[test]
 fn test_encode_decode_roundtrip_other() {
     let suffix = TypeIdSuffix::new::<V5>();
-    let decoded = suffix.clone().try_into().unwrap();
+    let suffix_to_uuid = suffix.to_uuid();
+    let decoded: TypeIdSuffix = suffix_to_uuid.into();
     assert_eq!(suffix, decoded);
 }
 
