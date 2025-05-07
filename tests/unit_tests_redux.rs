@@ -1,3 +1,9 @@
+//! Unit tests for TypeIdSuffix functionality.
+//!
+//! These tests verify the core functionality of TypeIdSuffix, including
+//! encoding/decoding roundtrips, compatibility with different UUID versions,
+//! and validation of invalid inputs.
+
 use std::str::FromStr;
 
 use uuid::Uuid;

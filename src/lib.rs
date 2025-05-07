@@ -92,12 +92,46 @@
 //! ## Optional Features
 //!
 //! - `instrument`: Enables logging with the `tracing` crate.
+//! - `serde`: Enables serialization and deserialization support using the `serde` crate.
 //!
 //! To enable optional features, add them to your `Cargo.toml`:
 //!
 //! ```toml
 //! [dependencies]
-//! typeid_suffix = { version = "1.1.0", features = ["instrument"] }
+//! typeid_suffix = { version = "1.0.1-beta.1", features = ["instrument", "serde"] }
+//! ```
+//!
+//! ### Serde Support
+//!
+//! When the `serde` feature is enabled, `TypeIdSuffix` implements `serde::Serialize` and `serde::Deserialize`.
+//! This allows `TypeIdSuffix` instances to be easily serialized to and deserialized from various formats
+//! like JSON, YAML, CBOR, etc., that are supported by Serde.
+//!
+//! `TypeIdSuffix` is serialized as its string representation and deserialized from a string.
+//!
+//! ```rust
+//! # #[cfg(feature = "serde")] {
+//! // Enable the serde feature in your Cargo.toml:
+//! // typeid_suffix = { version = "1.0.1-beta.1", features = ["serde"] }
+//!
+//! use typeid_suffix::prelude::*;
+//! // Note: serde_json is used here as an example and would be a separate dependency.
+//! use serde_json;
+//!
+//! // Serializing a TypeIdSuffix
+//! let suffix = TypeIdSuffix::default();
+//! let json_string = serde_json::to_string(&suffix).unwrap();
+//! println!("Serialized: {}", json_string); // e.g., "01h455vb4pex5vsknk084sn02q" (with quotes)
+//!
+//! // Deserializing a TypeIdSuffix
+//! let deserialized_suffix: TypeIdSuffix = serde_json::from_str(&json_string).unwrap();
+//! assert_eq!(suffix, deserialized_suffix);
+//!
+//! // Example of deserialization error
+//! let invalid_json = "\"invalid_suffix_too_long_or_invalid_chars\"";
+//! let result: Result<TypeIdSuffix, _> = serde_json::from_str(invalid_json);
+//! assert!(result.is_err());
+//! # }
 //! ```
 //!
 //! ## License
@@ -170,6 +204,34 @@ mod tests {
             uuid_bytes[6] = (uuid_bytes[6] & 0x0F) | (version << 4); // Set version
             uuid_bytes[8] = (uuid_bytes[8] & 0x3F) | 0x80; // Set variant to RFC4122
             Uuid::from_bytes(uuid_bytes)
+        }
+    }
+    
+    #[cfg(test)]
+    #[cfg(feature = "serde")]
+    mod serde_tests {
+        use super::*;
+        
+        #[test]
+        fn test_typeid_suffix_serialize() {
+            let suffix = TypeIdSuffix::default();
+            let serialized = serde_json::to_string(&suffix).unwrap();
+            assert!(serialized.starts_with("\"") && serialized.ends_with("\""));
+            assert_eq!(serialized.len(), 28); // 26 chars + 2 quotes
+        }
+        
+        #[test]
+        fn test_typeid_suffix_deserialize() {
+            let suffix = TypeIdSuffix::default();
+            let serialized = serde_json::to_string(&suffix).unwrap();
+            let deserialized: TypeIdSuffix = serde_json::from_str(&serialized).unwrap();
+            assert_eq!(suffix, deserialized);
+        }
+        
+        #[test]
+        fn test_typeid_suffix_deserialize_error() {
+            let result = serde_json::from_str::<TypeIdSuffix>("\"invalid_suffix\"");
+            assert!(result.is_err());
         }
     }
 

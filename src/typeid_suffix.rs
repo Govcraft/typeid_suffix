@@ -9,6 +9,9 @@ use std::str::FromStr;
 
 use uuid::{Uuid, Variant, Version};
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+
 use crate::encoding::{decode_base32, encode_base32};
 use crate::errors::{DecodeError, InvalidSuffixReason, InvalidUuidReason};
 use crate::versions::{UuidVersion, V7};
@@ -327,5 +330,64 @@ impl From<Uuid> for TypeIdSuffix {
         // SAFETY: The Uuid crate guarantees that the bytes are always 16 bytes long
         let encoded_bytes = encode_base32(value.as_bytes());
         Self(encoded_bytes)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl Serialize for TypeIdSuffix {
+    /// Serializes the `TypeIdSuffix` as its string representation.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #[cfg(feature = "serde")] {
+    /// use typeid_suffix::prelude::*;
+    /// let suffix = TypeIdSuffix::default();
+    /// let json = serde_json::to_string(&suffix).unwrap();
+    /// // The JSON string will be the suffix string, e.g., "\"01h455vb4pex5vsknk084sn02q\""
+    /// assert!(json.starts_with("\"") && json.ends_with("\""));
+    /// assert_eq!(json.trim_matches('"'), suffix.as_str());
+    /// # }
+    /// ```
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(self.as_str())
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'de> Deserialize<'de> for TypeIdSuffix {
+    /// Deserializes a `TypeIdSuffix` from its string representation.
+    ///
+    /// This expects a string that is a valid TypeID suffix.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the string is not a valid `TypeIdSuffix`
+    /// (e.g., incorrect length, invalid characters, invalid first character,
+    /// or decodes to an invalid UUID variant/version).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #[cfg(feature = "serde")] {
+    /// use typeid_suffix::prelude::*;
+    ///
+    /// let suffix_str = "\"01h455vb4pex5vsknk084sn02q\""; // JSON string
+    /// let deserialized: TypeIdSuffix = serde_json::from_str(suffix_str).unwrap();
+    ///
+    /// let invalid_suffix_str = "\"invalid\"";
+    /// let result: Result<TypeIdSuffix, _> = serde_json::from_str(invalid_suffix_str);
+    /// assert!(result.is_err());
+    /// # }
+    /// ```
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        TypeIdSuffix::from_str(&s).map_err(serde::de::Error::custom)
     }
 }

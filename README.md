@@ -18,7 +18,8 @@ Use the [mti (Magic Type Id) crate](https://crates.io/crates/mti) for a holistic
 - **Error Handling**: Comprehensive error types for invalid suffixes and UUIDs.
 - **Validation**: Robust validation for `TypeId`suffixes and UUIDs.
 - **Zero-cost Abstractions**: Designed to have minimal runtime overhead.
-- **Optional Tracing**: Integrates with the `tracing` crate for logging (optional feature).
+- **Optional Tracing**: Integrates with the `tracing` crate for logging (optional feature `instrument`).
+- **Optional Serde Support**: Enables serialization and deserialization with `serde` (optional feature `serde`).
 
 ## Installation
 
@@ -26,14 +27,16 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-typeid_suffix = "0.1.0"
+typeid_suffix = "1.0.1-beta.1"
 ```
 
 To enable optional features:
 
 ```toml
 [dependencies]
-typeid_suffix = { version = "0.1.0", features = ["instrument", "arbitrary"] }
+typeid_suffix = { version = "1.0.1-beta.1", features = ["instrument", "serde"] }
+# Or select specific features, e.g., just serde:
+# typeid_suffix = { version = "1.0.1-beta.1", features = ["serde"] }
 ```
 
 ## Usage
@@ -46,17 +49,23 @@ use typeid_suffix::prelude::*;
 use uuid::Uuid;
 
 fn main() {
-    // Create a `TypeId`suffix from a `UUIDv7`
-    let uuid = Uuid::now_v7();
-    let suffix = TypeIdSuffix::new(uuid).expect("Valid `UUIDv7`");
-    println!("TypeID suffix: {}", suffix);
+    // Create a `TypeIdSuffix` from a `UUIDv7` (default)
+    let suffix_v7 = TypeIdSuffix::default();
+    println!("TypeID suffix (v7 default): {}", suffix_v7);
 
-    // Parse a `TypeId`suffix from a string
+    // Create a `TypeIdSuffix` from a specific UUID
+    let uuid_v4 = Uuid::new_v4();
+    let suffix_v4: TypeIdSuffix = uuid_v4.into();
+    println!("TypeID suffix (from v4): {}", suffix_v4);
+
+    // Parse a `TypeIdSuffix` from a string
     let parsed_suffix = TypeIdSuffix::from_str("01h455vb4pex5vsknk084sn02q").expect("Valid suffix");
     
     // Convert back to a UUID
-    let recovered_uuid: Uuid = suffix.try_into().expect("Valid UUID");
-    assert_eq!(uuid, recovered_uuid);
+    let recovered_uuid: Uuid = parsed_suffix.try_into().expect("Valid UUID");
+    // Note: We don't know the original UUID version from the suffix alone without context,
+    // but we can recover the UUID bytes.
+    println!("Recovered UUID from parsed suffix: {}", recovered_uuid);
 }
 ```
 
@@ -67,9 +76,13 @@ use typeid_suffix::prelude::*;
 use uuid::Uuid;
 
 fn main() {
-    let uuid = Uuid::new_v4();
-    let suffix = TypeIdSuffix::new(uuid).expect("Valid UUID");
-    println!("TypeID suffix for UUIDv4: {}", suffix);
+    // Creating a new suffix for a specific version (e.g., V4)
+    let suffix_v4 = TypeIdSuffix::new::<V4>();
+    println!("TypeID suffix for new UUIDv4: {}", suffix_v4);
+
+    let uuid_v1 = Uuid::new_v1([1,2,3,4,5,6]); // Example, requires v1 feature on uuid crate
+    let suffix_v1: TypeIdSuffix = uuid_v1.into();
+    println!("TypeID suffix for UUIDv1: {}", suffix_v1);
 }
 ```
 
@@ -82,21 +95,75 @@ use typeid_suffix::prelude::*;
 use std::str::FromStr;
 
 fn main() {
-    let result = TypeIdSuffix::from_str("invalid_suffix");
+    let result = TypeIdSuffix::from_str("invalid_suffix"); // Invalid length and characters
     match result {
         Ok(_) => println!("Valid suffix"),
-        Err(e) => println!("Invalid suffix: {}", e),
+        Err(e) => println!("Invalid suffix: {}", e), // e.g., InvalidSuffix(InvalidLength)
+    }
+
+    let result_bad_first_char = TypeIdSuffix::from_str("81h455vb4pex5vsknk084sn02q"); // First char > '7'
+    match result_bad_first_char {
+        Ok(_) => println!("Valid suffix"),
+        Err(e) => println!("Invalid suffix: {}", e), // e.g., InvalidSuffix(InvalidFirstCharacter)
     }
 }
 ```
 
-### Optional Tracing
+## Optional Features
+
+### Optional Tracing (`instrument`)
 
 When the `instrument` feature is enabled, the crate will log operations using the `tracing` crate:
 
 ```toml
 [dependencies]
-typeid_suffix = { version = "0.1.0", features = ["instrument"] }
+typeid_suffix = { version = "1.0.1-beta.1", features = ["instrument"] }
+```
+
+### Serde Support (`serde`)
+
+When the `serde` feature is enabled, `TypeIdSuffix` implements `serde::Serialize` and `serde::Deserialize`. This allows `TypeIdSuffix` instances to be easily serialized to and deserialized from various formats like JSON, YAML, CBOR, etc., that are supported by Serde.
+
+`TypeIdSuffix` is serialized as its string representation and deserialized from a string.
+
+To enable this feature:
+
+```toml
+[dependencies]
+typeid_suffix = { version = "1.0.1-beta.1", features = ["serde"] }
+```
+
+**Example:**
+
+```rust
+# #[cfg(feature = "serde")] {
+use typeid_suffix::prelude::*;
+// Note: serde_json is used here as an example and would be a separate dependency.
+// Add `serde_json = "1.0"` to your [dependencies] or [dev-dependencies] in Cargo.toml.
+use serde_json;
+
+fn main() -> Result<(), serde_json::Error> {
+    let suffix = TypeIdSuffix::default();
+
+    // Serialize
+    let json_string = serde_json::to_string(&suffix)?;
+    println!("Serialized suffix: {}", json_string); // e.g., "\"01h455vb4pex5vsknk084sn02q\""
+
+    // Deserialize
+    let deserialized_suffix: TypeIdSuffix = serde_json::from_str(&json_string)?;
+    assert_eq!(suffix, deserialized_suffix);
+    println!("Deserialized suffix: {}", deserialized_suffix);
+
+    // Example of deserialization error
+    let invalid_json = "\"invalid_suffix_string\"";
+    let result: Result<TypeIdSuffix, _> = serde_json::from_str(invalid_json);
+    assert!(result.is_err());
+    if let Err(e) = result {
+        println!("Error deserializing invalid suffix: {}", e);
+    }
+    Ok(())
+}
+# }
 ```
 
 ## Use Cases

@@ -1,3 +1,9 @@
+//! Specification test vectors for TypeIdSuffix.
+//!
+//! These tests verify that TypeIdSuffix correctly implements the TypeID specification
+//! by testing against known test vectors. Each test vector consists of a TypeID suffix
+//! and its corresponding UUID representation.
+
 use typeid_suffix::prelude::*;
 use uuid::Uuid;
 use std::str::FromStr;
