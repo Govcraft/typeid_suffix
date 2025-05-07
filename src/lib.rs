@@ -24,7 +24,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! typeid_suffix = "1.1.0"
+//! typeid_suffix = "1.2.0"
 //! ```
 //!
 //! ## Usage Examples
@@ -98,7 +98,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! typeid_suffix = { version = "1.0.1-beta.1", features = ["instrument", "serde"] }
+//! typeid_suffix = { version = "1.2.0", features = ["instrument", "serde"] }
 //! ```
 //!
 //! ### Serde Support
@@ -112,7 +112,7 @@
 //! ```rust
 //! # #[cfg(feature = "serde")] {
 //! // Enable the serde feature in your Cargo.toml:
-//! // typeid_suffix = { version = "1.0.1-beta.1", features = ["serde"] }
+//! // typeid_suffix = { version = "1.2.0", features = ["serde"] }
 //!
 //! use typeid_suffix::prelude::*;
 //! // Note: serde_json is used here as an example and would be a separate dependency.

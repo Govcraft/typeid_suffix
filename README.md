@@ -27,16 +27,16 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-typeid_suffix = "1.0.1-beta.1"
+typeid_suffix = "1.2.0"
 ```
 
 To enable optional features:
 
 ```toml
 [dependencies]
-typeid_suffix = { version = "1.0.1-beta.1", features = ["instrument", "serde"] }
+typeid_suffix = { version = "1.2.0", features = ["instrument", "serde"] }
 # Or select specific features, e.g., just serde:
-# typeid_suffix = { version = "1.0.1-beta.1", features = ["serde"] }
+# typeid_suffix = { version = "1.2.0", features = ["serde"] }
 ```
 
 ## Usage
@@ -117,7 +117,7 @@ When the `instrument` feature is enabled, the crate will log operations using th
 
 ```toml
 [dependencies]
-typeid_suffix = { version = "1.0.1-beta.1", features = ["instrument"] }
+typeid_suffix = { version = "1.2.0", features = ["instrument"] }
 ```
 
 ### Serde Support (`serde`)
@@ -130,7 +130,7 @@ To enable this feature:
 
 ```toml
 [dependencies]
-typeid_suffix = { version = "1.0.1-beta.1", features = ["serde"] }
+typeid_suffix = { version = "1.2.0", features = ["serde"] }
 ```
 
 **Example:**
